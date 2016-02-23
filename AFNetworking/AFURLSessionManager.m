@@ -379,7 +379,14 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
 
 @implementation _AFURLSessionTaskSwizzling
 
-+ (void)load {
++ (void)setupSwizzlingOnce {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        [self setupSwizzling];
+    });
+}
+
++ (void)setupSwizzling {
     /**
      WARNING: Trouble Ahead
      https://github.com/AFNetworking/AFNetworking/pull/2702
@@ -513,6 +520,8 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
     if (!self) {
         return nil;
     }
+
+    [_AFURLSessionTaskSwizzling setupSwizzlingOnce];
 
     if (!configuration) {
         configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
@@ -1222,6 +1231,8 @@ expectedTotalBytes:(int64_t)expectedTotalBytes
 
 - (instancetype)initWithCoder:(NSCoder *)decoder {
     NSURLSessionConfiguration *configuration = [decoder decodeObjectOfClass:[NSURLSessionConfiguration class] forKey:@"sessionConfiguration"];
+
+    [_AFURLSessionTaskSwizzling setupSwizzlingOnce];
 
     self = [self initWithSessionConfiguration:configuration];
     if (!self) {
